@@ -2,7 +2,7 @@
     max-width: 357px;
     padding-bottom: 8px;
 }
-.SecurityNote {
+.SecurityNote, .Error {
     color: #FF4040;
     font: normal normal normal 15px/1.875em proxima-n-w01-reg, sans-serif;
     line-height: normal;

@@ -1,0 +1,23 @@
+import axios from 'axios';
+
+const instance = axios.create({
+    baseURL: 'https://admin-seena.com/api/manager/'
+});
+
+instance.defaults.headers.post['Content-Type'] = 'application/json';
+instance.interceptors.request.use(request => {
+    return request;
+}, error => {
+    return Promise.reject(error);
+});
+
+instance.interceptors.response.use(response => {
+    if(response.data.Error.code === 24){
+        throw new Error(response.data.Error.desc);
+    }
+    return response;
+}, error => {
+    return Promise.reject(error);
+});
+
+export default instance;

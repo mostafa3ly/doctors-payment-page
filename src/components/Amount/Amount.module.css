@@ -6,13 +6,25 @@
     border-radius: 10px;
     width: 153px;
     height: 42px;
-    font-size: 15px;
+    font-size: 16px;
     display: inline-block;
     line-height: 42px;
     font-family: roboto-thin,roboto,sans-serif;
     margin: auto;
+    text-align: center;
+    border: none;
+    color: #000;
+    -moz-appearance:textfield; 
+}
+.Amount::placeholder{
+    color: #000;
 }
 
+.Amount::-webkit-outer-spin-button,
+.Amount::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; 
+}
 .Currency{
     font-family: roboto-thin,roboto,sans-serif;
     font-size: 24px;

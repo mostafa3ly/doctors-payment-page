@@ -4,7 +4,7 @@ import SubscriptionForm from '../../containers/SubscriptionForm/SubscriptionForm
 import Logo from '../../components/UI/Logo/Logo';
 
 class Layout extends Component {
-
+    
     render() {
         return (
             <React.Fragment>
