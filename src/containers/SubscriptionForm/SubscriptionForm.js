@@ -4,32 +4,47 @@ import classes from './SubscriptionForm.module.css';
 import Amount from '../../components/Amount/Amout';
 import SeenaAxios from '../../axios-seena';
 import Loader from '../../components/UI/Loader/Loader'
-import axios from 'axios';
 import { sha256 } from 'js-sha256';
 
 
 class SubscriptionForm extends Component {
 
     state = {
-        validEmail: true,
+        validEmail: false,
         email: '',
         subscription: {
-            customerName: '',
-            nameOnCard: '',
-            cardNumber: '',
-            exDate: '',
-            cvc: '',
+            customer_name: '',
+            card_holder_name: '',
+            card_number: '',
+            expiry_date: '',
+            card_security_code: '',
             amount: ''
         },
         payfort: {
-            service_command: 'TOKENIZATION',
             accessCode: 'xg7kR0Ek8rfOsXDE5AYz',
+            language: 'en',
             merchant_identifier: 'UIdDWodS',
-            language: 'en'
+            merchant_reference: '',
+            return_url: window.location.href,
+            service_command: 'TOKENIZATION',
+            pass: '$2y$10$FD548sbei',
         },
+        order_number: this.getRandomPattern() + '_' + Date.now(),
+        token: '',
         loading: false,
         error: false,
+        subscriptionLoading: false,
+        subscriptionSuccess: false,
         errorMessage: '',
+    }
+
+    getRandomPattern() {
+        let pattern = '';
+        let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (var i = 0; i < 8; i++) {
+            pattern += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        return pattern;
     }
 
     emailChangedHandler = (event) => {
@@ -42,128 +57,200 @@ class SubscriptionForm extends Component {
         this.setState({ subscription: subscription });
     }
 
+    amountChangedHandler = (event) => {
+        let payfort = { ...this.state.payfort };
+        payfort.merchant_reference = `${this.state.order_number}_${this.state.user_id}_${event.target.value}`;
+        this.setState({ payfort: payfort });
+    }
+
     validateEmailHandler = (event) => {
         event.preventDefault();
         this.setState({ loading: true, error: false });
         SeenaAxios.post('email/confirm', { email: this.state.email })
             .then((response) => {
                 let data = response.data.Response;
-                this.setState({ validEmail: true, id: data.id, name: data.name, loading: false });
+                this.setState({
+                    validEmail: true,
+                    user_id: data.id,
+                    name: data.name,
+                    loading: false,
+                });
+
             }, (error) => {
                 this.setState({ loading: false, error: true, errorMessage: error.message });
             })
     }
 
     getSignature = () => {
+        let payfortParams = this.state.payfort;
         let signature =
-            '$2y$10$FD548sbei'
-            + 'access_code=' + 'xg7kR0Ek8rfOsXDE5AYz'
-            + 'language=' + 'en'
-            + 'merchant_identifier=' + 'UIdDWodS'
-            + 'merchant_reference=' + 'yZGatuU7318jI1Au'
-            + 'service_command=' + 'TOKENIZATION'
-            + '$2y$10$FD548sbei';
+            payfortParams.pass
+            + `access_code=${payfortParams.accessCode}`
+            + `language=${payfortParams.language}`
+            + `merchant_identifier=${payfortParams.merchant_identifier}`
+            + `merchant_reference=${payfortParams.merchant_reference}`
+            + `return_url=${payfortParams.return_url}`
+            + `service_command=${payfortParams.service_command}`
+            + payfortParams.pass;
+
         return sha256(signature);
+    }
+
+
+    componentDidMount() {
+
+        let search = window.location.search;
+        let params = new URLSearchParams(search);
+        let response_code = params.get('response_code');
+        let merchant_reference = params.get('merchant_reference');
+        let token_name = params.get('token_name');
+        if (response_code) {
+            if (response_code === "18000") {
+                this.setState({subscriptionLoading:true})
+                SeenaAxios.post('doctor/subscription',
+                    { user_id: merchant_reference.split('_')[2], amount: merchant_reference.split('_')[3], token_name: token_name })
+                    .then((response) => {
+                        const code = response.data.Error.code;
+                        if (code === 21) {
+                            window.location.replace(response.data.Response);
+                        }
+                        else if (code === 20) {
+                            this.setState({ subscriptionSuccess: true })
+                        }
+                    }, (error) => {
+                        this.setState({ error: true, errorMessage: 'Invalid credentials' });
+                    })
+            }
+            else {
+                this.setState({
+                    error: true,
+                    errorMessage: 'Invalid credentials',
+                    validEmail: true,
+                    user_id: merchant_reference.split('_')[2]
+                });
+            }
+        }
+
     }
 
     subscriptionSubmitHandler = (event) => {
         event.preventDefault();
         this.setState({ loading: true, error: false });
-        let signature = this.getSignature();
-        let params = {
-            service_command: 'TOKENIZATION',
-            accessCode: 'xg7kR0Ek8rfOsXDE5AYz',
-            merchant_identifier: 'UIdDWodS',
-            merchant_reference: 'yZGatuU7318jI1Au',
-            language: 'en',
-            expiry_date: this.state.subscription.exDate,
-            card_number: this.state.subscription.cardNumber,
-            card_security_code: this.state.subscription.cvc,
-            signature: signature
-        }
-
-        let bodyFormData = new FormData();
-        for (let [key, value] of Object.entries(params)) {
-            bodyFormData.set(key, value);
-        }
-        for (var pair of bodyFormData.entries()) {
-            console.log(pair[0] + ', ' + pair[1]);
-        }
-
-        axios.post('https://sbcheckout.PayFort.com/FortAPI/paymentPage', bodyFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        }).then(function (response) {
-            console.log(response);
-            this.setState({ loading: false });
-        }, (error) => {
-            console.log(error);
-            this.setState({ loading: false, error: true });
-        });
-
+        event.target.submit();
     }
 
     render() {
         let form = null;
-        let submitHandler = null;
         if (this.state.validEmail) {
-            submitHandler = this.subscriptionSubmitHandler;
+            let payfortParams = this.state.payfort;
             form = (
-                <React.Fragment>
+
+                <form method="post" action="https://sbcheckout.payfort.com/FortAPI/paymentPage"
+                    id="credit-modal-form" name="subscription-form" onSubmit={this.subscriptionSubmitHandler}>
+
+                    <input type="hidden" name="service_command" value={payfortParams.service_command} />
+                    <input type="hidden" name="access_code" value={payfortParams.accessCode} />
+                    <input type="hidden" name="merchant_identifier" value={payfortParams.merchant_identifier} />
+                    <input type="hidden" name="merchant_reference" value={payfortParams.merchant_reference} />
+                    <input type="hidden" name="language" value={payfortParams.language} />
+                    <input type="hidden" name="signature" value={this.getSignature()} />
+                    <input type="hidden" name="remember_me" value="YES" />
+                    <input type="hidden" name="return_url" value={payfortParams.return_url} />
+
                     <div className="row">
                         <div className='col-12'>
-                            <Input name='customerName' placeholder="Customer Name" type="text"
-                                value={this.state.subscription.customerName} changed={this.inputChangedHandler} />
+                            <Input
+                                placeholder="Customer Name"
+                                type="text"
+                                changed={this.inputChangedHandler} />
                         </div>
                     </div>
+
                     <div className="row">
                         <div className='col-12'>
-                            <Input name='nameOnCard' placeholder="Name on Card" type="text"
-                                value={this.state.subscription.nameOnCard} changed={this.inputChangedHandler} />
+                            <Input
+                                name='card_holder_name'
+                                placeholder="Name on Card"
+                                type="text"
+                                max='50'
+                                changed={this.inputChangedHandler} />
                         </div>
                     </div>
+
                     <div className="row">
                         <div className='col-12'>
-                            <Input name='cardNumber' placeholder="Card Number" type="number"
-                                value={this.state.subscription.cardNumber} changed={this.inputChangedHandler} />
+                            <Input
+                                name='card_number'
+                                placeholder="Card Number"
+                                type="number"
+                                pattern="[0-9]{1,15}"
+                                max='19'
+                                changed={this.inputChangedHandler} />
                         </div>
                     </div>
+
                     <div className="row">
                         <div className='col-md-6'>
-                            <Input name='exDate' placeholder="Expiry Date" type="number"
-                                value={this.state.subscription.exDate} changed={this.inputChangedHandler} />
+                            <Input
+                                name='expiry_date'
+                                placeholder="Expiry Date"
+                                type="number"
+                                max='4'
+                                changed={this.inputChangedHandler} />
                         </div>
+
                         <div className='col-md-6'>
-                            <Input name='cvc' placeholder="CVC" type="number"
-                                value={this.state.subscription.cvc} changed={this.inputChangedHandler} />
+                            <Input
+                                name='card_security_code'
+                                placeholder="CVC"
+                                max='3'
+                                pattern="[0-9]{1,15}"
+                                changed={this.inputChangedHandler} />
                         </div>
                     </div>
 
                     <p className={classes.SecurityNote}>For your security; we do not save any of your credit/debit card details</p>
-                    <Amount value={this.state.subscription.amount} changed={this.inputChangedHandler} />
+                    <Amount changed={this.amountChangedHandler} />
                     {this.state.loading ? <Loader /> : null}
                     {this.state.error ? <p className={classes.Error}>{this.state.errorMessage}</p> : null}
-                    <button className={`my-2 ${classes.Submit}`}>Confirm</button>
-                </React.Fragment>
+                    <input type='submit' value='Confirm' className={`my-2 ${classes.Submit}`} />
+                </form>
             )
         }
         else {
-            submitHandler = this.validateEmailHandler;
+            if (this.state.subscriptionLoading) {
+                form = (<Loader />);
+            }
+            else {
+                form = (
+                    <form onSubmit={this.validateEmailHandler}>
+                        <div className="row">
+                            <div className='col-12'>
+                                <Input name="email" placeholder="Email" type="email" value={this.state.email} changed={this.emailChangedHandler} />
+                                {this.state.loading ? <Loader /> : null}
+                                {this.state.error ? <p className={classes.Error}>{this.state.errorMessage}</p> : null}
+                                <input className={`my-4 ${classes.Submit}`} value="Confirm" type='submit' />
+                            </div>
+                        </div>
+                    </form>
+                )
+            }
+        }
+        if (this.state.subscriptionSuccess) {
             form = (
-                <div className="row">
-                    <div className='col-12'>
-                        <Input name="email" placeholder="Email" type="email" value={this.state.email} changed={this.emailChangedHandler} />
-                        {this.state.loading ? <Loader /> : null}
-                        {this.state.error ? <p className={classes.Error}>{this.state.errorMessage}</p> : null}
-                        <button className={`my-4 ${classes.Submit}`}>Confirm</button>
+                <div className={classes.Success}>
+                    <p>Subscription successful</p>
+                    <div>
+                        <span></span>
                     </div>
                 </div>
-            )
+            );
         }
 
         return (
-            <form className={`container ${classes.Form}`} onSubmit={submitHandler}>
+            <div className={`container ${classes.Form}`}>
                 {form}
-            </form>);
+            </div>);
     }
 }
 

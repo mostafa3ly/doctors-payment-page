@@ -4,10 +4,14 @@ import classes from './Input.module.css';
 const input = (props) => {
     return (
         <div className={classes.Container}>
-            <input name={props.name} className={classes.Input} type={props.type}
-                value={props.value}
+            <input
+                name={props.name}
+                className={classes.Input}
+                type={props.type}
                 onChange={props.changed}
-                placeholder={props.placeholder} required />
+                placeholder={props.placeholder}
+                maxLength={props.max}
+                required />
         </div>
     );
 }

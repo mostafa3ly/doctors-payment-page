@@ -1,7 +1,8 @@
-.Form{
+.Form {
     max-width: 357px;
     padding-bottom: 8px;
 }
+
 .SecurityNote, .Error {
     color: #FF4040;
     font: normal normal normal 15px/1.875em proxima-n-w01-reg, sans-serif;
@@ -25,8 +26,52 @@
     transition: all 0.2s ease-in-out;
 }
 
-.Submit:hover{
+.Submit:hover {
     background-color: rgba(67, 140, 191, 0.6);
+}
+
+.Success p {
+    color: #51A6DB;
+    font-family: Futura-Lt-w01-book;
+    font-size: 25px;
+    margin-top: 30px;
+}
+
+
+.Success div {
+    position: relative;
+    padding: 1px 0 1px 40px;
+    margin: auto;
+    display: inline-block;
+    margin-top: 50px;
+}
+
+.Success div span {
+    border-radius: 50%;
+    cursor: pointer;
+    height: 35px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+    width: 35px;
+    background-color: #4e4;
+}
+
+.Success div span:after {
+    border: 3px solid #fff;
+    border-top: none;
+    border-right: none;
+    content: "";
+    height: 10px;
+    left: 8px;
+    opacity: 1;
+    position: absolute;
+    top: 12px;
+    transform: rotate(-50deg);
+    width: 20px;
 }
 
 @font-face {
