@@ -110,10 +110,10 @@ class SubscriptionForm extends Component {
                     { user_id: merchant_reference.split('_')[2], amount: merchant_reference.split('_')[3], token_name: token_name })
                     .then((response) => {
                         const code = response.data.Error.code;
-                        if (code === 20) {
+                        if (code === 21) {
                             window.location.replace(response.data.Response);
                         }
-                        else if (code === 21) {
+                        else if (code === 20) {
                             this.props.history.push("/success");
                         }
                     }, (error) => {
