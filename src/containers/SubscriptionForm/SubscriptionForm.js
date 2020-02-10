@@ -28,6 +28,8 @@ class SubscriptionForm extends Component {
             service_command: 'TOKENIZATION',
             pass: '$2y$10$FD548sbei',
         },
+        expiry_date_month: '',
+        expiry_date_year: '',
         order_number: this.getRandomPattern() + '_' + Date.now(),
         token: '',
         loading: false,
@@ -62,6 +64,16 @@ class SubscriptionForm extends Component {
         this.setState({ payfort: payfort });
     }
 
+    expiryDateChangedHandler = (event) => {
+        let value = event.target.value;
+        if (event.target.id === 'expiry_date_month') {
+            if (value.length === 1 && Number(value) < 10) {
+                value = '0' + value;
+            }
+        }
+        this.setState({ [event.target.id]: value });
+    }
+
     validateEmailHandler = (event) => {
         event.preventDefault();
         this.setState({ loading: true, error: false });
@@ -94,7 +106,6 @@ class SubscriptionForm extends Component {
 
         return sha256(signature);
     }
-
 
     componentDidMount() {
 
@@ -155,6 +166,7 @@ class SubscriptionForm extends Component {
                     <input type="hidden" name="signature" value={this.getSignature()} />
                     <input type="hidden" name="remember_me" value="YES" />
                     <input type="hidden" name="return_url" value={payfortParams.return_url} />
+                    <input type="hidden" name="expiry_date" value={this.state.expiry_date_year + this.state.expiry_date_month} />
 
                     <div className="row">
                         <div className='col-12'>
@@ -189,13 +201,22 @@ class SubscriptionForm extends Component {
                     </div>
 
                     <div className="row">
-                        <div className='col-md-6'>
+                        <div className='col-6 col-md-3 pr-1'>
                             <Input
-                                name='expiry_date'
-                                placeholder="Expiry Date"
-                                type="number"
-                                max='4'
-                                changed={this.inputChangedHandler} />
+                                placeholder="MM"
+                                type="text"
+                                max='2'
+                                id="expiry_date_month"
+                                changed={this.expiryDateChangedHandler} />
+                        </div>
+
+                        <div className='col-6 col-md-3 px-1'>
+                            <Input
+                                placeholder="YY"
+                                type="text"
+                                max='2'
+                                id="expiry_date_year"
+                                changed={this.expiryDateChangedHandler} />
                         </div>
 
                         <div className='col-md-6'>

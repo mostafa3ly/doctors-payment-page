@@ -4,7 +4,7 @@ import classes from './SuccessScreen.module.css';
 const successScreen = (props) => {
     return (
         <div className={classes.Container}>
-            <p>Subscription succeeded</p>
+            <p>Payment Confirmed</p>
             <div>
                 <span></span>
             </div>

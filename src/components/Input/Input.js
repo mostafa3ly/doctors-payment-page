@@ -11,6 +11,7 @@ const input = (props) => {
                 onChange={props.changed}
                 placeholder={props.placeholder}
                 maxLength={props.max}
+                id={props.id}
                 required />
         </div>
     );
