@@ -8,7 +8,6 @@ import { sha256 } from 'js-sha256';
 
 
 class SubscriptionForm extends Component {
-
     state = {
         validEmail: false,
         email: '',
@@ -106,16 +105,16 @@ class SubscriptionForm extends Component {
         let token_name = params.get('token_name');
         if (response_code) {
             if (response_code === "18000") {
-                this.setState({subscriptionLoading:true})
+                this.setState({ subscriptionLoading: true })
                 SeenaAxios.post('doctor/subscription',
                     { user_id: merchant_reference.split('_')[2], amount: merchant_reference.split('_')[3], token_name: token_name })
                     .then((response) => {
                         const code = response.data.Error.code;
-                        if (code === 21) {
+                        if (code === 20) {
                             window.location.replace(response.data.Response);
                         }
-                        else if (code === 20) {
-                            this.setState({ subscriptionSuccess: true })
+                        else if (code === 21) {
+                            this.props.history.push("/success");
                         }
                     }, (error) => {
                         this.setState({ error: true, errorMessage: 'Invalid credentials' });
@@ -235,16 +234,6 @@ class SubscriptionForm extends Component {
                     </form>
                 )
             }
-        }
-        if (this.state.subscriptionSuccess) {
-            form = (
-                <div className={classes.Success}>
-                    <p>Subscription successful</p>
-                    <div>
-                        <span></span>
-                    </div>
-                </div>
-            );
         }
 
         return (

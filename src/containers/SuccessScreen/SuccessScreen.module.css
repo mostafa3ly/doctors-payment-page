@@ -1,0 +1,43 @@
+.Container p {
+    color: #51A6DB;
+    font-family: Futura-Lt-w01-book;
+    font-size: 25px;
+    margin-top: 30px;
+}
+
+
+.Container div {
+    position: relative;
+    padding: 1px 0 1px 40px;
+    margin: auto;
+    display: inline-block;
+    margin-top: 50px;
+}
+
+.Container div span {
+    border-radius: 50%;
+    cursor: pointer;
+    height: 35px;
+    left: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+    width: 35px;
+    background-color: #4e4;
+}
+
+.Container div span:after {
+    border: 3px solid #fff;
+    border-top: none;
+    border-right: none;
+    content: "";
+    height: 10px;
+    left: 8px;
+    opacity: 1;
+    position: absolute;
+    top: 12px;
+    transform: rotate(-50deg);
+    width: 20px;
+}
