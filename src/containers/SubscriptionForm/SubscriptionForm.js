@@ -64,6 +64,12 @@ class SubscriptionForm extends Component {
         this.setState({ payfort: payfort });
     }
 
+    nameChangedHandler = (event) => {
+        let subscription = { ...this.state.subscription };
+        subscription.customer_name = event.target.value;
+        this.setState({ subscription: subscription });
+    }
+
     expiryDateChangedHandler = (event) => {
         let value = event.target.value;
         if (event.target.id === 'expiry_date_month') {
@@ -116,9 +122,16 @@ class SubscriptionForm extends Component {
         let token_name = params.get('token_name');
         if (response_code) {
             if (response_code === "18000") {
-                this.setState({ subscriptionLoading: true })
+                this.setState({ subscriptionLoading: true });
+                let customer_name = localStorage.getItem('customer_name');
+                localStorage.removeItem("customer_name");
                 SeenaAxios.post('doctor/subscription',
-                    { user_id: merchant_reference.split('_')[2], amount: merchant_reference.split('_')[3], token_name: token_name })
+                    {
+                        user_id: merchant_reference.split('_')[2],
+                        amount: merchant_reference.split('_')[3],
+                        token_name: token_name,
+                        customer_name: customer_name
+                    })
                     .then((response) => {
                         const code = response.data.Error.code;
                         if (code === 21) {
@@ -145,6 +158,7 @@ class SubscriptionForm extends Component {
 
     subscriptionSubmitHandler = (event) => {
         event.preventDefault();
+        localStorage.setItem('customer_name', this.state.subscription.customer_name);
         this.setState({ loading: true, error: false });
         event.target.submit();
     }
@@ -173,7 +187,7 @@ class SubscriptionForm extends Component {
                             <Input
                                 placeholder="Customer Name"
                                 type="text"
-                                changed={this.inputChangedHandler} />
+                                changed={this.nameChangedHandler} />
                         </div>
                     </div>
 
