@@ -20,13 +20,13 @@ class SubscriptionForm extends Component {
             amount: ''
         },
         payfort: {
-            accessCode: 'xg7kR0Ek8rfOsXDE5AYz',
+            accessCode: '0F3kZvwCQYVmExMk8X8V',
             language: 'en',
-            merchant_identifier: 'UIdDWodS',
+            merchant_identifier: 'OJUMAVcp',
             merchant_reference: '',
             return_url: window.location.href,
             service_command: 'TOKENIZATION',
-            pass: '$2y$10$FD548sbei',
+            pass: '$2y$10$84RwDKnJn',
         },
         expiry_date_month: '',
         expiry_date_year: '',
@@ -169,7 +169,7 @@ class SubscriptionForm extends Component {
             let payfortParams = this.state.payfort;
             form = (
 
-                <form method="post" action="https://sbcheckout.payfort.com/FortAPI/paymentPage"
+                <form method="post" action="https://checkout.PayFort.com/FortAPI/paymentPage"
                     id="credit-modal-form" name="subscription-form" onSubmit={this.subscriptionSubmitHandler}>
 
                     <input type="hidden" name="service_command" value={payfortParams.service_command} />
